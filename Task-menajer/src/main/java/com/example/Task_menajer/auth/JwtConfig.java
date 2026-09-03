@@ -2,25 +2,22 @@ package com.example.Task_menajer.auth;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
-import com.example.Task_menajer.domain.entitys.User;
-import org.springframework.stereotype.Component;
-
-import javax.xml.crypto.AlgorithmMethod;
-
-import com.auth0.jwt.JWT;
-import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTCreationException;
+import com.auth0.jwt.exceptions.JWTVerificationException;
+import com.auth0.jwt.interfaces.DecodedJWT;
+import com.example.Task_menajer.DTOs.JwtUserData;
 import com.example.Task_menajer.domain.entitys.User;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.Optional;
 
 @Component
 public class JwtConfig {
 
-    private String secret = "secret";
+    private final String secret = "secret";
 
     public String generateToken(User user) {
         try {
@@ -38,7 +35,36 @@ public class JwtConfig {
         }
     }
 
+    public Optional<JwtUserData> validateToken(String token) {
+        try {
+            Algorithm algorithm = Algorithm.HMAC256(secret);
+
+            DecodedJWT decodedJWT = JWT.require(algorithm)
+                    .withIssuer("API task manajer")
+                    .build()
+                    .verify(token);
+
+            String userId = decodedJWT
+                    .getClaim("userId")
+                    .asString();
+
+            String email = decodedJWT.getSubject();
+
+            return Optional.of(
+                    JwtUserData.builder()
+                            .userId(userId)
+                            .email(email)
+                            .build()
+            );
+
+        } catch (JWTVerificationException exception) {
+            return Optional.empty();
+        }
+    }
+
     private Instant genExpirationDate() {
-        return LocalDateTime.now().plusHours(2).toInstant(ZoneOffset.of("-03:00"));
+        return LocalDateTime.now()
+                .plusHours(2)
+                .toInstant(ZoneOffset.of("-03:00"));
     }
 }
