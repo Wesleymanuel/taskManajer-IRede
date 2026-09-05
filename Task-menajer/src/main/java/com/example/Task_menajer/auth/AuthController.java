@@ -46,9 +46,6 @@ public class AuthController {
         newUser.setEmail(dto.userEmail());
         newUser.setPassword(passwordEncoder.encode(dto.userPassword()));
 
-        System.out.println(newUser.getEmail() + newUser.getName());
-        System.out.println("hello spring");
-
         userRepository.save(newUser);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(new SingUpUserResponseDTO(newUser.getUser_id(), newUser.getName(), newUser.getEmail()));
@@ -56,7 +53,7 @@ public class AuthController {
 
 
     @PostMapping("/singIn")
-    public ResponseEntity<?> singIn(
+    public ResponseEntity<SingInUserResponseDTO> singIn(
             @Valid
             @RequestBody SingInUserRequestDTO dto
     ){
