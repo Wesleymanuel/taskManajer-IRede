@@ -1,11 +1,8 @@
 package com.example.Task_menajer.controller;
 
-import com.example.Task_menajer.DTOs.CreateTaskRequestDTO;
-import com.example.Task_menajer.DTOs.CreateTaskResponseDTO;
-import com.example.Task_menajer.DTOs.UpdateTaskRequestDTO;
-import com.example.Task_menajer.DTOs.UpdateTaskResponseDTO;
-import com.example.Task_menajer.domain.entitys.Task;
+import com.example.Task_menajer.DTOs.*;
 import com.example.Task_menajer.service.CreateTaskService;
+import com.example.Task_menajer.service.DeleteTaskService;
 import com.example.Task_menajer.service.UpdateTaskService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +19,8 @@ public class TaskController {
     private  CreateTaskService createTaskService;
     @Autowired
     private UpdateTaskService updateTaskService;
+    @Autowired
+    private DeleteTaskService deleteTaskService;
 
     @PostMapping("/create")
     public ResponseEntity<CreateTaskResponseDTO> createTask(
@@ -40,5 +39,11 @@ public class TaskController {
     ){
         UpdateTaskResponseDTO res = this.updateTaskService.updateTask(id, dto);
         return ResponseEntity.status(HttpStatus.OK).body(res);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteTask(@PathVariable UUID id){
+        this.deleteTaskService.delete(id);
+        return ResponseEntity.noContent().build();
     }
 }
