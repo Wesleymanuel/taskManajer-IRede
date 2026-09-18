@@ -6,6 +6,11 @@ import com.example.Task_menajer.DTOs.SingUpUserRequestDTO;
 import com.example.Task_menajer.DTOs.SingUpUserResponseDTO;
 import com.example.Task_menajer.domain.entitys.User;
 import com.example.Task_menajer.repository.UserRepository;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -36,7 +41,22 @@ public class AuthController {
         this.jwtConfig = jwtConfig;
     }
 
-    @PostMapping("/singUp")
+    @Operation(
+            summary = "cadastra usuario",
+            description = "registra usuario na aplicao",
+            method = "POST"
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "201",
+                    description = "resgistra usuario com sucesso na aplicao",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = SingUpUserRequestDTO.class)
+                    )
+            )
+    })
+    @PostMapping("/register")
     public ResponseEntity<SingUpUserResponseDTO> singUp(
             @Valid
             @RequestBody SingUpUserRequestDTO dto
@@ -52,7 +72,22 @@ public class AuthController {
     }
 
 
-    @PostMapping("/singIn")
+    @Operation(
+            summary = "login do usuario",
+            description = "recebe as informacoes para realizar login e enviar token de autenticacao",
+            method = "POST"
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "usuario realizou login com sucesso e possui o token de autenticacao",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema =  @Schema(implementation = SingInUserResponseDTO.class)
+                    )
+            )
+    })
+    @PostMapping("/login")
     public ResponseEntity<SingInUserResponseDTO> singIn(
             @Valid
             @RequestBody SingInUserRequestDTO dto

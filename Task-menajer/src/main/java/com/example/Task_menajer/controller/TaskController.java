@@ -2,7 +2,9 @@ package com.example.Task_menajer.controller;
 
 import com.example.Task_menajer.DTOs.*;
 import com.example.Task_menajer.domain.entitys.Task;
+import com.example.Task_menajer.domain.entitys.User;
 import com.example.Task_menajer.repository.TaskRepository;
+import com.example.Task_menajer.repository.UserRepository;
 import com.example.Task_menajer.service.CreateTaskService;
 import com.example.Task_menajer.service.DeleteTaskService;
 import com.example.Task_menajer.service.UpdateTaskService;
@@ -12,7 +14,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.userdetails.UserDetails;
 
+import java.security.Principal;
 import java.util.List;
 import java.util.UUID;
 
@@ -26,15 +30,18 @@ public class TaskController {
     @Autowired
     private DeleteTaskService deleteTaskService;
     @Autowired
+    private UserRepository userRepository;
+    @Autowired
     private TaskRepository taskRepository;
 
     @PostMapping("/create")
     public ResponseEntity<CreateTaskResponseDTO> createTask(
             @Valid
-            @RequestBody CreateTaskRequestDTO dto
+            @RequestBody CreateTaskRequestDTO dto,
+            Principal principal
     ) {
-        UUID userUuid = dto.userId();
-        return ResponseEntity.status(HttpStatus.CREATED).body(createTaskService.create(new CreateTaskRequestDTO(dto.title(), userUuid, dto.description())));
+        CreateTaskResponseDTO response = createTaskService.create(dto, principal);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PutMapping("/{id}")
@@ -75,5 +82,22 @@ public class TaskController {
                 task.getDescription(),
                 task.isStatus()
         ));
+    }
+
+    @GetMapping("/get/user")
+    public ResponseEntity<List<GetAllTasksResponseDTO>> getTasksByUser(Principal principal){
+        String username = principal.getName();
+        UserDetails userDetails = this.userRepository.findUsersByEmail(username)
+                .orElseThrow(() -> new EntityNotFoundException("Usuário não encontrado"));
+
+        User user = (User) userDetails;
+        List<GetAllTasksResponseDTO> tasks = this.taskRepository.findTasksByUserId(user.getUser_id())
+                .stream().map((tk) -> new GetAllTasksResponseDTO(
+                        tk.getTask_id(),
+                        tk.getTitle(),
+                        tk.getDescription(),
+                        tk.isStatus()
+                )).toList();
+        return ResponseEntity.ok().body(tasks);
     }
 }

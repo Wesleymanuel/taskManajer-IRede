@@ -7,8 +7,6 @@ import jakarta.validation.constraints.Size;
 import java.util.UUID;
 
 public record UpdateTaskRequestDTO(
-        @NotNull(message = "O id do usuario é obrigatório")
-        UUID userId,
 
         @NotBlank(message = "O título é obrigatório")
         @Size(max = 100, message = "O título deve ter no máximo 100 caracteres")

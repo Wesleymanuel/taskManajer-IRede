@@ -17,21 +17,15 @@ import java.util.UUID;
 public class UpdateTaskService {
     @Autowired
     private TaskRepository taskRepository;
-    @Autowired
-    private UserRepository userRepository;
 
     @Transactional
     public UpdateTaskResponseDTO updateTask(UUID taskId, UpdateTaskRequestDTO dto){
         Task task = this.taskRepository.findById(taskId)
                 .orElseThrow(() -> new EntityNotFoundException("task nao existe"));
 
-        User user = this.userRepository.findById(dto.userId())
-                .orElseThrow(() -> new EntityNotFoundException("user nao existe"));
-
         task.setTitle(dto.title());
         task.setDescription(dto.description());
         task.setStatus(dto.status());
-        task.setUserId(user);
 
         Task updatedTask = this.taskRepository.save(task);
 

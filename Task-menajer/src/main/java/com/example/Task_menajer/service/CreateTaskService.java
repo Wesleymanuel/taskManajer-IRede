@@ -8,9 +8,10 @@ import com.example.Task_menajer.exceptions.TaskAlreadyExistException;
 import com.example.Task_menajer.exceptions.UserNotFoundException;
 import com.example.Task_menajer.repository.TaskRepository;
 import com.example.Task_menajer.repository.UserRepository;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
+import java.security.Principal;
 import java.util.Optional;
 
 @Service
@@ -24,25 +25,31 @@ public class CreateTaskService {
         this.userRepository = userRepository;
     }
 
-    public CreateTaskResponseDTO create(CreateTaskRequestDTO task) throws UserNotFoundException, TaskAlreadyExistException {
+    public CreateTaskResponseDTO create(CreateTaskRequestDTO taskDto, Principal principal) throws UserNotFoundException, TaskAlreadyExistException {
+        String email = principal.getName();
 
-        Optional<User> user = userRepository.findById(task.userId());
-        Optional<Task> taksExit = taskRepository.findTaskByTitle(task.title());
+        UserDetails userDetails = userRepository.findUsersByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException("Usuário não encontrado para o e-mail: " + email));
 
-        if (user.isEmpty()) {
-            throw new UserNotFoundException("User" + task.userId() + "not found");
-        }
-        else if (taksExit.isPresent()) {
+        User user = (User) userDetails;
+
+        Optional<Task> taksExit = taskRepository.findTaskByTitle(taskDto.title());
+
+        if (taksExit.isPresent()) {
             throw new TaskAlreadyExistException("Task already exist");
         }
             Task newTask = new Task();
-            newTask.setTitle(task.title());
-            newTask.setUserId(user.get());
-            newTask.setDescription(task.description());
-            newTask.setStatus(false);
+            newTask.setTitle(taskDto.title());
+            newTask.setDescription(taskDto.description());
+
+            boolean statusValue = taskDto.status() != null ? taskDto.status() : false;
+            newTask.setStatus(statusValue);
+            newTask.setUserId(user);
+
+            String statusResponse = newTask.isStatus() ? "completa" : "incompleta";
 
             taskRepository.save(newTask);
 
-            return new CreateTaskResponseDTO(newTask.getTask_id(),newTask.getTitle(), newTask.getDescription(), "incompleta");
+            return new CreateTaskResponseDTO(newTask.getTask_id(),newTask.getTitle(), newTask.getDescription(), statusResponse);
     }
 }
